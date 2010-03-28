@@ -5,6 +5,16 @@ Spectrum is a preprocessor for the [PRISM][prism] model checking language.
 
 PRISM is a great model checker, but misses out on some syntactic sugar that would make it a little sweeter to work with. Spectrum reads in those sweeter files, and outputs a translated PRISM file instead.
 
+Run it with:
+
+	ruby spectrum.rb < my_file
+	
+or just
+
+	ruby spectrum.rb my_file
+	
+Spectrum doesn't care about which you prefer.
+
 Currently, Spectrum supports:
 
 * Array expansion
