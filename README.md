@@ -6,6 +6,7 @@ Spectrum is a preprocessor for the [PRISM][prism] model checking language.
 PRISM is a great model checker, but misses out on some syntactic sugar that would make it a little sweeter to work with. Spectrum reads in those sweeter files, and outputs a translated PRISM file instead.
 
 Currently, Spectrum supports:
+
 * Array expansion
 
 Array expansion
