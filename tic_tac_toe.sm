@@ -1,0 +1,38 @@
+ctmc
+
+formula blank = 0;
+formula player_x = 1;
+formula player_o = 2;
+
+formula change_current_player = current_player = player_x ? player_o : player_x;
+
+module tictactoe
+	board[3][3] : [0..2] init blank;
+
+	[player_turn] board[1][1] = blank -> 100.0:(board[1][1]' = current_player);
+
+	[player_turn] board[0][0] = blank -> (board[0][0]' = current_player);
+	[player_turn] board[0][1] = blank -> (board[0][1]' = current_player);
+	[player_turn] board[0][2] = blank -> (board[0][2]' = current_player);
+	[player_turn] board[1][0] = blank -> (board[1][0]' = current_player);
+	[player_turn] board[1][2] = blank -> (board[1][2]' = current_player);
+	[player_turn] board[2][0] = blank -> (board[2][0]' = current_player);
+	[player_turn] board[2][1] = blank -> (board[2][1]' = current_player);
+	[player_turn] board[2][2] = blank -> (board[2][2]' = current_player);
+endmodule
+
+module game_state
+	current_player : [player_x..player_o] init player_x;
+	
+	[player_turn] true -> (current_player' = change_current_player);
+endmodule
+
+label "win" =  
+	(board[0][0] = board[0][1] & board[0][1] = board[0][2] & board[0][2] != blank) |
+	(board[1][0] = board[1][1] & board[1][1] = board[1][2] & board[1][2] != blank) |
+	(board[2][0] = board[2][1] & board[2][1] = board[2][2] & board[2][2] != blank) |
+	(board[0][0] = board[1][0] & board[1][0] = board[2][0] & board[2][0] != blank) |
+	(board[0][1] = board[1][1] & board[1][1] = board[2][1] & board[2][1] != blank) |
+	(board[0][2] = board[1][2] & board[1][2] = board[2][2] & board[2][2] != blank) |
+	(board[0][0] = board[1][1] & board[1][1] = board[2][2] & board[2][2] != blank) |
+	(board[0][2] = board[1][1] & board[1][1] = board[2][0] & board[2][0] != blank);
