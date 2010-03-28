@@ -8,6 +8,7 @@ PRISM is a great model checker, but misses out on some syntactic sugar that woul
 Currently, Spectrum supports:
 
 * Array expansion
+* More to come!
 
 Array expansion
 ---------------
