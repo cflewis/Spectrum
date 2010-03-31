@@ -1,0 +1,65 @@
+# cflewis | 2010-03-29 | A treetop grammar for PRISM
+grammar Spectrum
+    rule spectrum
+        markov_declaration (ws / ((formula / global) ";") / module)* #/ global / label / module)* #(array / whitespace)* #(formula / global / label / module)*
+    end
+    
+    # cflewis | 2010-03-29 | An array is any word, followed by
+    # square brackets, then a number, then square brackets
+    rule array
+        [a-zA-Z]+ "[" [\d]+ "]" #[\d]+ "]"
+    end
+    
+    rule markov_declaration
+        ("mdp" / "dtmc" / "ctmc")
+    end
+    
+    rule formula
+        "formula" ws [\w]+ ws* "=" ws* expression
+    end
+    
+    rule global
+        "global" ws variable
+    end
+    
+    rule variable 
+        [\w]+ ws* ":" ws* (variable_number / variable_boolean) ws*
+    end
+    
+    rule variable_number
+        "[" range "]" ws "init" ws [\d]+
+    end
+    
+    rule variable_boolean
+        "bool" ws "init" ws ("true" / "false")
+    end
+    
+    rule range
+        [\d]+ ".." [\d]+
+    end
+
+    # rule label
+    #     !.
+    # end
+    # 
+
+    # cflewis | 2010-03-30 | Currently broken; something wrong with
+    # the variable definition I think, but the globals work fine...
+    rule module
+        "module" ws [\w]+ ws ((variable / command) ";")* "endmodule"
+    end
+    
+    rule command
+        !.
+    end
+    
+    # cflewis | 2010-03-30 | Specifying expressions is going to be harder
+    # than the rest of the file, so I'll do this last
+    rule expression
+        [\d]+
+    end
+
+    rule ws
+        [\s]+
+    end
+end
