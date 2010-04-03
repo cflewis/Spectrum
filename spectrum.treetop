@@ -1,13 +1,7 @@
 # cflewis | 2010-03-29 | A treetop grammar for PRISM
 grammar Spectrum
     rule spectrum
-        markov_declaration (ws / ((formula / global) ";") / module)* #/ global / label / module)* #(array / whitespace)* #(formula / global / label / module)*
-    end
-    
-    # cflewis | 2010-03-29 | An array is any word, followed by
-    # square brackets, then a number, then square brackets
-    rule array
-        [a-zA-Z]+ "[" [\d]+ "]" #[\d]+ "]"
+        ws? markov_declaration (ws / ((formula / global) ";") / module)* #/ global / label / module)* #(array / whitespace)* #(formula / global / label / module)*
     end
     
     rule markov_declaration
@@ -23,20 +17,58 @@ grammar Spectrum
     end
     
     rule variable 
-        [\w]+ ws* ":" ws* (variable_number / variable_boolean) ws*
+        identifier ws* ":" ws* (variable_number / variable_boolean) ws*
     end
     
     rule variable_number
-        "[" range "]" ws "init" ws [\d]+
+        "[" range "]" (ws "init" ws number)?
     end
     
     rule variable_boolean
-        "bool" ws "init" ws ("true" / "false")
+        "bool" (ws "init" ws boolean)?
     end
     
     rule range
         [\d]+ ".." [\d]+
     end
+
+    rule identifier
+        [a-zA-Z] ([\w]+)?
+    end
+    
+    rule boolean
+        ("true" / "false")
+    end
+    
+    rule number
+        [\d]+ ("." [\d]+)?
+    end
+    
+    rule literal
+        (number / boolean)
+    end
+    
+    rule operator
+        "*" /
+        "/" /
+        "+" /
+        "-" /
+        "<=" /
+        ">=" /
+        "<" /
+        ">" /
+        "=" /
+        "!=" /
+        "!" /
+        "&" /
+        "|" /
+        "=>"
+    end
+
+    rule function
+        identifier "(" [^)]* ")"
+    end
+        
 
     # rule label
     #     !.
@@ -46,17 +78,15 @@ grammar Spectrum
     # cflewis | 2010-03-30 | Currently broken; something wrong with
     # the variable definition I think, but the globals work fine...
     rule module
-        "module" ws [\w]+ ws ((variable / command) ";")* "endmodule"
+        "module" ws identifier ws ((variable / command) ";")* "endmodule"
     end
     
     rule command
         !.
     end
     
-    # cflewis | 2010-03-30 | Specifying expressions is going to be harder
-    # than the rest of the file, so I'll do this last
     rule expression
-        [\d]+
+        (ws / literal / operator / function)+
     end
 
     rule ws
