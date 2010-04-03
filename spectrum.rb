@@ -8,14 +8,17 @@ parser = SpectrumParser.new
 
 
 
-if result = parser.parse("ctmc formula stuff = 3; global x : [0..2] init 0;
-    global y : bool init false;")
+if result = parser.parse(File.read("prism_example_1"))
   puts "Parsed Spectrum file: #{result.inspect}"
 else
-  puts "I say no, I don't understand."
+  puts "I don't understand."
   unless parser.terminal_failures.empty?
     puts parser.failure_reason
   else
-    puts "I had a problem with line #{parser.failure_line} column #{parser.index+1}"
+    puts   "expected #{parser} to parse...\n" + 
+       "failure column: #{parser.failure_column}\n" + 
+       "failure index: #{parser.failure_index}\n" + 
+       "failure line: #{parser.failure_line}\n" + 
+       "failure reason: #{parser.failure_reason}\n"
   end
 end

@@ -1,95 +1,282 @@
-# cflewis | 2010-03-29 | A treetop grammar for PRISM
-grammar Spectrum
-    rule spectrum
-        ws? markov_declaration (ws / ((formula / global) ";") / module)* #/ global / label / module)* #(array / whitespace)* #(formula / global / label / module)*
+grammar Spectrum    
+    rule modules_file
+        (ws / comment / model_type / formula / label / constant / global / 
+        renamed_module / module / init)*
     end
     
-    rule markov_declaration
-        ("mdp" / "dtmc" / "ctmc")
+    rule ws
+        [\s]+
+    end
+    
+    rule ows
+        [\s]*
+    end
+    
+    rule comment
+        "//" ([^"\n"^"\r"])* ("\n" / "\r" / "\r\n")
+    end
+    
+    rule model_type
+        "probablistic" / "dtmc" /
+        "nondeterministic" / "mdp" /
+        "stochastic" / "ctmc"
     end
     
     rule formula
-        "formula" ws [\w]+ ws* "=" ws* expression
+        identifier_expression EQ expression SEMICOLON
+    end
+    
+    rule label
+        "label" DQUOTE identifier_expression DQUOTE EQ expression SEMICOLON
+    end
+    
+    rule constant
+        "const" ws ("int" / "double" / "bool") ws 
+            identifier_expression EQ expression SEMICOLON
     end
     
     rule global
-        "global" ws variable
+        "global" ws declaration
     end
     
-    rule variable 
-        identifier ws* ":" ws* (variable_number / variable_boolean) ws*
+    rule declaration
+        identifier COLON 
+            ((LBRACKET expression ".." expression RBRACKET) / "bool") 
+            (ows "init" ws expression)? SEMICOLON
     end
     
-    rule variable_number
-        "[" range "]" (ws "init" ws number)?
-    end
-    
-    rule variable_boolean
-        "bool" (ws "init" ws boolean)?
-    end
-    
-    rule range
-        [\d]+ ".." [\d]+
-    end
-
-    rule identifier
-        [a-zA-Z] ([\w]+)?
-    end
-    
-    rule boolean
-        ("true" / "false")
-    end
-    
-    rule number
-        [\d]+ ("." [\d]+)?
-    end
-    
-    rule literal
-        (number / boolean)
-    end
-    
-    rule operator
-        "*" /
-        "/" /
-        "+" /
-        "-" /
-        "<=" /
-        ">=" /
-        "<" /
-        ">" /
-        "=" /
-        "!=" /
-        "!" /
-        "&" /
-        "|" /
-        "=>"
-    end
-
-    rule function
-        identifier "(" [^)]* ")"
-    end
-        
-
-    # rule label
-    #     !.
-    # end
-    # 
-
-    # cflewis | 2010-03-30 | Currently broken; something wrong with
-    # the variable definition I think, but the globals work fine...
     rule module
-        "module" ws identifier ws ((variable / command) ";")* "endmodule"
+        "module" ws identifier_expression ws declaration* command* ws "endmodule"
     end
     
     rule command
-        !.
+        LBRACKET identifier? RBRACKET expression ARROW updates SEMICOLON
+    end
+    
+    rule updates
+        update / (expression COLON update 
+                    (ws "+" ws expression COLON update)*)
+    end
+    
+    rule update
+        (update_element (ws "&" update_element)*) / "TRUE"
+    end
+    
+    rule update_element
+        LPAREN identifier_prime EQ expression RPAREN
+    end
+    
+    rule renamed_module
+        "module" ws identifier_expression EQ identifier_expression 
+            LBRACKET rename (COMMA rename)* RBRACKET "endmodule"
+    end
+    
+    rule rename
+        identifier_expression_min_max EQ identifier_expression_min_max
+    end
+    
+    rule reward_struct
+        "rewards" ws (DQUOTE identifier DQUOTE)?
+        ((LBRACKET identifier? RBRACKET)? expression COLON expression SEMICOLON)*
+        "endrewards"
+    end
+    
+    rule init
+        "init" ws expression ws "endinit"
     end
     
     rule expression
-        (ws / literal / operator / function)+
+        expression_ite
     end
-
-    rule ws
-        [\s]+
+    
+    rule expression_ite
+        (QMARK expression_implies COLON expression_ite) / expression_implies
+    end
+        
+    rule expression_implies
+        (IMPLIES expression_or)+ / expression_or
+    end
+    
+    rule expression_or
+        (OR expression_and)+ / expression_and
+    end
+    
+    rule expression_and
+        (AND expression_not)+ / expression_not
+    end
+    
+    rule expression_not
+        (NOT expression_not) / expression_equality
+    end
+    
+    rule expression_equality
+        ((EQ / NEQ) expression_relop)+ / expression_relop
+    end
+    
+    rule expression_relop
+        ((LT / GT) expression_plus_minus)+ / expression_plus_minus
+    end
+    
+    rule expression_plus_minus
+        ((PLUS / MINUS) expression_times_divide)+ / expression_times_divide
+    end
+    
+    rule expression_times_divide
+        ((TIMES / DIVIDE) expression_unary_minus)+ / expression_unary_minus
+    end
+    
+    rule expression_unary_minus
+        (MINUS expression_unary_minus) / expression_basic
+    end
+    
+    rule expression_basic
+        expression_literal /
+        expression_func_or_ident /
+        expression_func_min_max /
+        expression_parenth # /
+        #         expression_prob /
+        #         expression_ss /
+        #         expression_reward /
+        #         expression_exists /
+        #         expression_for_all /
+        #         expression_label
+    end
+    
+    rule expression_func_or_ident
+        identifier (LPAREN expression_func_args RPAREN)?
+    end
+    
+    rule expression_func_min_max
+        ("min" / "max") LPAREN expression_func_args RPAREN
+    end
+    
+    rule expression_func_args
+        expression (COMMA expression)*
+    end
+    
+    rule expression_literal
+        integer / double / boolean
+    end
+    
+    rule expresion_parenth
+        LPAREN expression RPAREN
+    end
+    
+    rule identifier
+        [_a-zA-Z] [_a-zA-Z0-9]*
+    end
+    
+    rule identifier_expression
+        identifier
+    end
+    
+    rule identifier_expression_min_max
+        identifier / "min" / "max"
+    end
+    
+    rule identifier_prime
+        identifier "\'"
+    end
+    
+    rule integer
+        ([1-9] [0-9]*) / [0]
+    end
+    
+    rule double
+        [0-9]* "."? [0-9]+ ([eE] [-+]? [0-9]+)?
+    end
+    
+    rule boolean
+        ows ("true" / "false") ows
+    end
+    
+    
+    
+    rule EQ
+        ows "=" ows
+    end
+    
+    rule NEQ
+        ows "!=" ows
+    end
+    
+    rule LT
+        ows "<" ows
+    end
+    
+    rule GT
+        ows ">" ows
+    end
+    
+    rule OR
+        ows "|" ows
+    end
+    
+    rule AND
+        ows "&" ows
+    end
+    
+    rule NOT
+        ows "|" ows
+    end
+    
+    rule PLUS
+        ows "+" ows
+    end
+    
+    rule MINUS
+        ows "-" ows
+    end
+    
+    rule TIMES
+        ows "*" ows
+    end
+    
+    rule DIVIDE
+        ows "/" ows
+    end
+    
+    rule DQUOTE
+        ows "\"" ows
+    end
+    
+    rule QMARK
+        ows "?" ows
+    end
+    
+    rule COMMA
+        ows "," ows
+    end
+    
+    rule SEMICOLON
+        ows ";" ows
+    end
+    
+    rule COLON
+        ows ":" ows
+    end
+    
+    rule LPAREN
+        ows "(" ows
+    end
+    
+    rule RPAREN
+        ows ")" ows
+    end
+    
+    rule LBRACKET
+        ows "[" ows
+    end
+    
+    rule RBRACKET
+        ows "]" ows
+    end
+    
+    rule ARROW
+        ows "->" ows
+    end
+    
+    rule IMPLIES
+        ows "=>" ows
     end
 end
