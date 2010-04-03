@@ -46,11 +46,11 @@ grammar Spectrum
     end
     
     rule module
-        "module" ws identifier_expression ws declaration* command* ws "endmodule"
+        "module" ws identifier_expression ws declaration* command* ows "endmodule"
     end
     
     rule command
-        LBRACKET identifier? RBRACKET expression ARROW updates SEMICOLON
+        LBRACKET identifier? RBRACKET expression+ ARROW updates+ SEMICOLON
     end
     
     rule updates
@@ -155,10 +155,10 @@ grammar Spectrum
     end
     
     rule expression_literal
-        integer / double / boolean
+        double / integer / boolean
     end
     
-    rule expresion_parenth
+    rule expression_parenth
         LPAREN expression RPAREN
     end
     
