@@ -8,7 +8,7 @@ parser = SpectrumParser.new
 
 
 
-if result = parser.parse(File.read("prism_example_1"))
+if result = parser.parse(File.read("circadian.sm"))
   puts "Parsed Spectrum file: #{result.inspect}"
 else
   puts "I don't understand."

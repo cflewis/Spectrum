@@ -46,11 +46,11 @@ grammar Spectrum
     end
     
     rule module
-        "module" ws identifier_expression ws declaration* command* ows "endmodule"
+        "module" ws identifier_expression (ws / comment / declaration / command)* ows "endmodule"
     end
     
     rule command
-        LBRACKET identifier? RBRACKET expression+ ARROW updates+ SEMICOLON
+        LBRACKET identifier? RBRACKET expression ARROW updates+ SEMICOLON
     end
     
     rule updates
@@ -59,7 +59,7 @@ grammar Spectrum
     end
     
     rule update
-        (update_element (ws "&" update_element)*) / "TRUE"
+        (update_element (ows "&" update_element ows)*) / TRUE
     end
     
     rule update_element
@@ -86,7 +86,7 @@ grammar Spectrum
     end
     
     rule expression
-        expression_ite
+        expression_ite+
     end
     
     rule expression_ite
@@ -190,8 +190,6 @@ grammar Spectrum
         ows ("true" / "false") ows
     end
     
-    
-    
     rule EQ
         ows "=" ows
     end
@@ -278,5 +276,9 @@ grammar Spectrum
     
     rule IMPLIES
         ows "=>" ows
+    end
+    
+    rule TRUE
+        ows "true" ows
     end
 end
